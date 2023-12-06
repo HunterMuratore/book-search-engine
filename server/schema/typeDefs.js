@@ -40,7 +40,6 @@ input BookInput {
     image: String
     link: String
     title: String!
-    # Add other book input fields as needed
 }
   
 type AuthPayload {
