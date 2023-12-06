@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 
 const User = require('../../models/User');
 
-const signToken = require('../../utils/auth');
+const { signToken } = require('../../utils/auth');
 
 const secret = 'mysecretsshhhhh';
 const expiration = '2h';
