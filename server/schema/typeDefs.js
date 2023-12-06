@@ -49,6 +49,7 @@ type AuthPayload {
 }
   
 type Query {
+    me: User
     getSingleUser(id: ID, username: String): User
 }
   

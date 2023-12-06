@@ -9,6 +9,21 @@ const expiration = '2h';
 
 const user_resolvers = {
     Query: {
+        // Me query, get current authenticated user
+        async me(_, __, { user }) {
+            // 'user' is the authenticated user obtained from the context
+            if (!user) {
+              throw new Error('You are not authenticated.');
+            }
+      
+            try {
+              // Fetch and return the authenticated user
+              const authenticatedUser = await User.findById(user._id);
+              return authenticatedUser;
+            } catch (error) {
+              throw new Error(`Error fetching user: ${error.message}`);
+            }
+        },
         // Get a single user by either their id or username
         async getSingleUser(_, { id, username }, context) {
             try {
@@ -27,7 +42,7 @@ const user_resolvers = {
             catch (err) {
                 throw new Error(`Error finding user: ${err.message}`);
             }
-        }
+        },
     },
 
     Mutation: {
