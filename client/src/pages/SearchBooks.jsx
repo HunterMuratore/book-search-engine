@@ -1,4 +1,10 @@
 import { useState, useEffect } from 'react';
+
+// Import Apollo Client hooks
+import { useQuery, useMutation } from '@apollo/client';
+import { SAVE_BOOK, DELETE_BOOK } from '../utils/mutations';
+import { GET_ME } from '../utils/queries';
+
 import {
   Container,
   Col,
@@ -9,7 +15,7 @@ import {
 } from 'react-bootstrap';
 
 import Auth from '../utils/auth';
-import { saveBook, searchGoogleBooks } from '../utils/API';
+import { searchGoogleBooks } from '../utils/API';
 import { saveBookIds, getSavedBookIds } from '../utils/localStorage';
 
 const SearchBooks = () => {
@@ -17,15 +23,21 @@ const SearchBooks = () => {
   const [searchedBooks, setSearchedBooks] = useState([]);
   // create state for holding our search field data
   const [searchInput, setSearchInput] = useState('');
-
   // create state to hold saved bookId values
   const [savedBookIds, setSavedBookIds] = useState(getSavedBookIds());
+  // Use useQuery hook to fetch user data
+  const { loading, data } = useQuery(GET_ME);
+  const userData = data?.me || {};
+
+  // Use useMutation hook for the saveBook and removeBook mutations
+  const [saveBook] = useMutation(SAVE_BOOK);
+  const [removeBook] = useMutation(DELETE_BOOK);
 
   // set up useEffect hook to save `savedBookIds` list to localStorage on component unmount
   // learn more here: https://reactjs.org/docs/hooks-effect.html#effects-with-cleanup
   useEffect(() => {
     return () => saveBookIds(savedBookIds);
-  });
+  }, [savedBookIds]);
 
   // create method to search for books and set state on form submit
   const handleFormSubmit = async (event) => {
@@ -72,6 +84,7 @@ const SearchBooks = () => {
     }
 
     try {
+      // Save book using the saveBook mutation
       const response = await saveBook(bookToSave, token);
 
       if (!response.ok) {
@@ -84,6 +97,30 @@ const SearchBooks = () => {
       console.error(err);
     }
   };
+
+  const handleDeleteBook = async (bookId) => {
+    try {
+      // Remove book using the removeBook mutation
+      const { data } = await removeBook({
+        variables: { bookId: bookId },
+      });
+
+      setSearchedBooks(data.removeBook.savedBooks);
+      setSavedBookIds(data.removeBook.savedBooks.map(book => book.bookId));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="text-light bg-dark p-5">
+        <Container>
+          <p>Loading...</p>
+        </Container>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -120,25 +157,28 @@ const SearchBooks = () => {
         </h2>
         <Row>
           {searchedBooks.map((book) => {
+            const isBookSaved = userData.savedBooks.some(savedBook => savedBook.bookId === book.bookId);
+
             return (
               <Col md="4" key={book.bookId}>
                 <Card border='dark'>
-                  {book.image ? (
-                    <Card.Img src={book.image} alt={`The cover for ${book.title}`} variant='top' />
-                  ) : null}
+                  {/* ... (existing code) */}
                   <Card.Body>
-                    <Card.Title>{book.title}</Card.Title>
-                    <p className='small'>Authors: {book.authors}</p>
-                    <Card.Text>{book.description}</Card.Text>
+                    {/* ... (existing code) */}
                     {Auth.loggedIn() && (
-                      <Button
-                        disabled={savedBookIds?.some((savedBookId) => savedBookId === book.bookId)}
-                        className='btn-block btn-info'
-                        onClick={() => handleSaveBook(book.bookId)}>
-                        {savedBookIds?.some((savedBookId) => savedBookId === book.bookId)
-                          ? 'This book has already been saved!'
-                          : 'Save this Book!'}
-                      </Button>
+                      <div>
+                        <Button
+                          disabled={isBookSaved}
+                          className='btn-block btn-info'
+                          onClick={() => handleSaveBook(book.bookId)}>
+                          {isBookSaved ? 'This book has already been saved!' : 'Save this Book!'}
+                        </Button>
+                        <Button
+                          className='btn-block btn-danger'
+                          onClick={() => handleDeleteBook(book.bookId)}>
+                          Remove from saved
+                        </Button>
+                      </div>
                     )}
                   </Card.Body>
                 </Card>

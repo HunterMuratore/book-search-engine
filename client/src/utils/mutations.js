@@ -60,7 +60,6 @@ export const DELETE_BOOK = gql`
             link
             title
         }
-      }
     }
-  }
+}
 `
