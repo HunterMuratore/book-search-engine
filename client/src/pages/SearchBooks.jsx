@@ -157,14 +157,16 @@ const SearchBooks = () => {
         </h2>
         <Row>
           {searchedBooks.map((book) => {
-            const isBookSaved = userData.savedBooks.some(savedBook => savedBook.bookId === book.bookId);
-
             return (
               <Col md="4" key={book.bookId}>
                 <Card border='dark'>
-                  {/* ... (existing code) */}
+                  {book.image ? (
+                    <Card.Img src={book.image} alt={`The cover for ${book.title}`} variant='top' />
+                  ) : null}
                   <Card.Body>
-                    {/* ... (existing code) */}
+                    <Card.Title>{book.title}</Card.Title>
+                    <p className='small'>Authors: {book.authors}</p>
+                    <Card.Text>{book.description}</Card.Text>
                     {Auth.loggedIn() && (
                       <div>
                         <Button
