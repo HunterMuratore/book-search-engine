@@ -35,7 +35,14 @@ class AuthService {
   login(idToken) {
     // Saves user token to localStorage
     localStorage.setItem('id_token', idToken);
-    window.location.assign('/');
+
+    // Check if the token is expired
+    if (this.isTokenExpired(idToken)) {
+      window.location.assign('/login');
+    } else {
+      // Redirect to the home page
+      window.location.assign('/');
+    }
   }
 
   logout() {

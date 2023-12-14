@@ -47,23 +47,25 @@ const user_resolvers = {
 
     Mutation: {
         // Create a user, sign a token and return it back to the SignUpForm.js
-        async createUser(_, { input }) {
+        async addUser(_, { input }) {
             try {
-                const user = User.create(input);
-
-                if (!user) {
-                    throw new Error('Something is wrong!');
-                }
-
-                const token = signToken(user);
-
-                return { token, user };
+              const user = User.create(input);
+          
+              if (!user) {
+                throw new Error('Something is wrong!');
+              }
+          
+              const token = signToken(user);
+          
+              // Return both the token and the user in the response
+              return { token, user };
             } catch (err) {
-                throw new Error(`Error creating user: ${err.message}`);
+                console.error(`Error creating user: ${err.message}`);
+                throw new Error('User creation failed: Something went wrong');
             }
-        },
+          },
         // Login user, sign a token, and return it back to the LoginForm.js
-        async login(_, { input }) {
+        async loginUser(_, { input }) {
             try {
                 const { usernameOrEmail, password} = input;
                 const user = await User.findOne({ $or: [{ username: usernameOrEmail }, { email: usernameOrEmail }]});

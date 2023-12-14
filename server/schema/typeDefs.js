@@ -53,8 +53,8 @@ type Query {
 }
   
 type Mutation {
-    createUser(input: CreateUserInput!): AuthPayload
-    login(input: LoginInput!): AuthPayload
+    addUser(input: CreateUserInput!): AuthPayload
+    loginUser(input: LoginInput!): AuthPayload
     saveBook(input: SaveBookInput!): User
     deleteBook(bookId: ID!): User
 }

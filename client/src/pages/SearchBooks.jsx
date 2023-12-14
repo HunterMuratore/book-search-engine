@@ -39,6 +39,9 @@ const SearchBooks = () => {
     return () => saveBookIds(savedBookIds);
   }, [savedBookIds]);
 
+  // Create a function to check if a book is saved based on its bookId
+  const isBookSaved = (bookId) => savedBookIds.includes(bookId);
+
   // create method to search for books and set state on form submit
   const handleFormSubmit = async (event) => {
     event.preventDefault();
@@ -84,14 +87,14 @@ const SearchBooks = () => {
     }
 
     try {
-      // Save book using the saveBook mutation
-      const response = await saveBook(bookToSave, token);
+      const { data } = await saveBook({
+        variables: { input: bookToSave },
+      });
 
-      if (!response.ok) {
-        throw new Error('something went wrong!');
+      if (!data) {
+        throw new Error("something went wrong!");
       }
 
-      // if book successfully saves to user's account, save book id to state
       setSavedBookIds([...savedBookIds, bookToSave.bookId]);
     } catch (err) {
       console.error(err);
@@ -99,12 +102,19 @@ const SearchBooks = () => {
   };
 
   const handleDeleteBook = async (bookId) => {
+    const token = Auth.loggedIn() ? Auth.getToken() : null;
+  
+    if (!token) {
+      // Handle the case where the user is not authenticated
+      return;
+    }
+  
     try {
       // Remove book using the removeBook mutation
       const { data } = await removeBook({
         variables: { bookId: bookId },
       });
-
+  
       setSearchedBooks(data.removeBook.savedBooks);
       setSavedBookIds(data.removeBook.savedBooks.map(book => book.bookId));
     } catch (err) {
@@ -170,10 +180,10 @@ const SearchBooks = () => {
                     {Auth.loggedIn() && (
                       <div>
                         <Button
-                          disabled={isBookSaved}
+                          disabled={isBookSaved(book.bookId)}
                           className='btn-block btn-info'
                           onClick={() => handleSaveBook(book.bookId)}>
-                          {isBookSaved ? 'This book has already been saved!' : 'Save this Book!'}
+                          {isBookSaved(book.bookId) ? 'This book has already been saved!' : 'Save this Book!'}
                         </Button>
                         <Button
                           className='btn-block btn-danger'
