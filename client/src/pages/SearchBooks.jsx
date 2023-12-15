@@ -25,6 +25,7 @@ const SearchBooks = () => {
   const [searchInput, setSearchInput] = useState('');
   // create state to hold saved bookId values
   const [savedBookIds, setSavedBookIds] = useState(getSavedBookIds());
+
   // Use useQuery hook to fetch user data
   const { loading, data } = useQuery(GET_ME);
   const userData = data?.me || {};
@@ -49,6 +50,9 @@ const SearchBooks = () => {
     if (!searchInput) {
       return false;
     }
+
+    // get token using Auth utility
+    const token = Auth.getToken();
 
     try {
       const response = await searchGoogleBooks(searchInput);
@@ -79,8 +83,8 @@ const SearchBooks = () => {
     // find the book in `searchedBooks` state by the matching id
     const bookToSave = searchedBooks.find((book) => book.bookId === bookId);
 
-    // get token
-    const token = Auth.loggedIn() ? Auth.getToken() : null;
+    // get token using Auth utility
+    const token = Auth.getToken();
 
     if (!token) {
       return false;
@@ -102,19 +106,20 @@ const SearchBooks = () => {
   };
 
   const handleDeleteBook = async (bookId) => {
-    const token = Auth.loggedIn() ? Auth.getToken() : null;
-  
+    // get token using Auth utility
+    const token = Auth.getToken();
+
     if (!token) {
       // Handle the case where the user is not authenticated
       return;
     }
-  
+
     try {
       // Remove book using the removeBook mutation
       const { data } = await removeBook({
         variables: { bookId: bookId },
       });
-  
+
       setSearchedBooks(data.removeBook.savedBooks);
       setSavedBookIds(data.removeBook.savedBooks.map(book => book.bookId));
     } catch (err) {

@@ -56,7 +56,7 @@ const user_resolvers = {
               }
           
               const token = signToken(user);
-          
+
               // Return both the token and the user in the response
               return { token, user };
             } catch (err) {
