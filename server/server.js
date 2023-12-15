@@ -40,12 +40,17 @@ async function startServer() {
 
   db.once('open', () => {
     console.log('DB connection established');
-
+  
     app.listen(PORT, () => {
       console.log('Server listening on port', PORT);
       console.log('GraphQL ready at /graphql');
     });
   });
+  
+  db.on('error', (error) => {
+    console.error('DB connection error:', error);
+    process.exit(1); // Exit the application on database connection error
+  });  
 }
 
 startServer();
