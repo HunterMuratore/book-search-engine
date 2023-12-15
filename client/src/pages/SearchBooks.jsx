@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 
-// Import Apollo Client hooks
 import { useQuery, useMutation } from '@apollo/client';
 import { SAVE_BOOK, DELETE_BOOK } from '../utils/mutations';
 import { GET_ME } from '../utils/queries';
@@ -19,23 +18,16 @@ import { searchGoogleBooks } from '../utils/API';
 import { saveBookIds, getSavedBookIds } from '../utils/localStorage';
 
 const SearchBooks = () => {
-  // create state for holding returned google api data
   const [searchedBooks, setSearchedBooks] = useState([]);
-  // create state for holding our search field data
   const [searchInput, setSearchInput] = useState('');
-  // create state to hold saved bookId values
   const [savedBookIds, setSavedBookIds] = useState(getSavedBookIds());
 
-  // Use useQuery hook to fetch user data
   const { loading, data } = useQuery(GET_ME);
   const userData = data?.me || {};
 
-  // Use useMutation hook for the saveBook and removeBook mutations
   const [saveBook] = useMutation(SAVE_BOOK);
   const [removeBook] = useMutation(DELETE_BOOK);
 
-  // set up useEffect hook to save `savedBookIds` list to localStorage on component unmount
-  // learn more here: https://reactjs.org/docs/hooks-effect.html#effects-with-cleanup
   useEffect(() => {
     return () => saveBookIds(savedBookIds);
   }, [savedBookIds]);
@@ -50,9 +42,6 @@ const SearchBooks = () => {
     if (!searchInput) {
       return false;
     }
-
-    // get token using Auth utility
-    const token = Auth.getToken();
 
     try {
       const response = await searchGoogleBooks(searchInput);
@@ -84,7 +73,7 @@ const SearchBooks = () => {
     const bookToSave = searchedBooks.find((book) => book.bookId === bookId);
 
     // get token using Auth utility
-    const token = Auth.getToken();
+    const token = Auth.loggedIn() ? Auth.getToken() : null;
 
     if (!token) {
       return false;
@@ -92,7 +81,11 @@ const SearchBooks = () => {
 
     try {
       const { data } = await saveBook({
-        variables: { input: bookToSave },
+        variables: {
+          input: {
+            book: { ...bookToSave }
+          }
+        },
       });
 
       if (!data) {
@@ -100,28 +93,6 @@ const SearchBooks = () => {
       }
 
       setSavedBookIds([...savedBookIds, bookToSave.bookId]);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const handleDeleteBook = async (bookId) => {
-    // get token using Auth utility
-    const token = Auth.getToken();
-
-    if (!token) {
-      // Handle the case where the user is not authenticated
-      return;
-    }
-
-    try {
-      // Remove book using the removeBook mutation
-      const { data } = await removeBook({
-        variables: { bookId: bookId },
-      });
-
-      setSearchedBooks(data.removeBook.savedBooks);
-      setSavedBookIds(data.removeBook.savedBooks.map(book => book.bookId));
     } catch (err) {
       console.error(err);
     }
@@ -189,11 +160,6 @@ const SearchBooks = () => {
                           className='btn-block btn-info'
                           onClick={() => handleSaveBook(book.bookId)}>
                           {isBookSaved(book.bookId) ? 'This book has already been saved!' : 'Save this Book!'}
-                        </Button>
-                        <Button
-                          className='btn-block btn-danger'
-                          onClick={() => handleDeleteBook(book.bookId)}>
-                          Remove from saved
                         </Button>
                       </div>
                     )}

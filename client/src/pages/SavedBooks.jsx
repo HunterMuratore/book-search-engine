@@ -9,20 +9,16 @@ import {
 import Auth from '../utils/auth';
 import { removeBookId } from '../utils/localStorage';
 
-// Import Apollo Client hooks
 import { useQuery, useMutation } from '@apollo/client';
 import { DELETE_BOOK } from '../utils/mutations';
 import { GET_ME } from '../utils/queries';
 
 const SavedBooks = () => {
-  // Use useQuery hook to fetch user data
   const { loading, data } = useQuery(GET_ME);
   const userData = data?.me || {};
 
-  // Use useMutation hook for the removeBook mutation
   const [removeBook] = useMutation(DELETE_BOOK);
 
-  // create function that accepts the book's mongo _id value as param and deletes the book from the database
   const handleDeleteBook = async (bookId) => {
     const token = Auth.loggedIn() ? Auth.getToken() : null;
 
@@ -31,21 +27,18 @@ const SavedBooks = () => {
     }
 
     try {
-      // Remove book using the removeBookMutation mutation
       const { data } = await removeBook({
         variables: { bookId: bookId },
       });
 
       setUserData(data.removeBook);
 
-      // upon success, remove book's id from localStorage
       removeBookId(bookId);
     } catch (err) {
       console.error(err);
     }
   };
 
-  // if data isn't here yet, say so
   if (loading) {
     return <h2>LOADING...</h2>;
   }
